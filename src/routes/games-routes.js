@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { create, render } from "../controllers/games-conttrollers.js"
+import { create, render } from "../controllers/games-controllers.js"
 
 const router = Router();
 
