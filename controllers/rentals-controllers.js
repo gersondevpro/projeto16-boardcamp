@@ -5,24 +5,24 @@ export async function newRental(req, res) {
     try {
         const { customerId, gameId, daysRented } = req.body;
 
-        const rentDate = dayjs().locale('pt-br').format('YYYY-MM-DD');
+        const rentDate = dayjs().format('YYYY-MM-DD HH:mm');
         const findPricePerDay = await db.query(`SELECT "pricePerDay" FROM games WHERE id = $1`, [gameId]);
 
         if (daysRented === 0) {
             return res.sendStatus(400);
         };
 
-        const originalPrice = daysRented * findPricePerDay.rows[0].pricePerDay;
-
         const findClient = await db.query(`SELECT * FROM customers WHERE id = $1;`, [customerId]);
         if (findClient.rows.length === 0) {
-            return sendStatus(400);
+            return res.sendStatus(400);
         }
 
         const findGame = await db.query(`SELECT * FROM games WHERE id = $1;`, [gameId]);
         if (findGame.rows.length === 0) {
-            return sendStatus(400);
+            return res.sendStatus(400);
         }
+
+        const originalPrice = daysRented * findPricePerDay.rows[0].pricePerDay;
 
         const returnDate = null;
         const delayFee = null;
@@ -77,9 +77,9 @@ export async function readRentals(req, res) {
         );
 
         return res.send(rents);
-} catch (error) {
-    res.status(500).send(error.message);
-};
+    } catch (error) {
+        res.status(500).send(error.message);
+    };
 };
 
 export async function endLocation(req, res) {
@@ -95,18 +95,23 @@ export async function endLocation(req, res) {
             return res.sendStatus(400);
         };
 
-        const returnDate = dayjs().locale('br').format('YYYY-MM-DD HH:mm')
+        const returnDate = dayjs().format('YYYY-MM-DD HH:mm');
         /* const teste = "2023-03-07T03:00:00.000Z" */
 
-        const dayRent = consult.rows[0].rentDate
-        const dayReturn = returnDate
-        const diffInMs = new Date(dayReturn) - new Date(dayRent)
+        const d1 = consult.rows[0].rentDate;
+        const d2 = returnDate;
+        const diffInMs = new Date(d2) - new Date(d1)
         const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
 
-        if (diffInDays => 1) {
+        console.log(diffInMs);
+        console.log(diffInDays);
+
+        // erro não solucionado
+        /* if (diffInDays => 1.0) {
+            console.log("entrei")
             await db.query(`UPDATE rentals SET "delayFee" = $1 WHERE id = $2;`,
-                [(diffInDays - consult.rows[0].daysRented) * (consult.rows[0].originalPrice / consult.rows[0].daysRented), id])
-        }
+            [(diffInDays - consult.rows[0].daysRented) * (consult.rows[0].originalPrice / consult.rows[0].daysRented), id])
+        } */
 
         await db.query(`UPDATE rentals SET "returnDate" = $1 WHERE id = $2;`, [returnDate, id]);
 
